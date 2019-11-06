@@ -1,0 +1,1 @@
+export const randomNum = () => Math.floor(Math.random() * 999999999).toString().substr(0, 9).toString()

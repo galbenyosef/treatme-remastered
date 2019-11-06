@@ -1,0 +1,56 @@
+.theme-customization {
+
+  height: 100%;
+
+  .deni-react-treeview-container {
+    font-family: tahoma;
+    font-size: 14px;
+    width: auto;
+    height: auto;
+    overflow: hidden;
+
+    /* changing the font color, font size and line's height */
+    .deni-react-treeview-item-container {
+      height: 36px;
+      padding: 0px;
+      /* changing the font color, and padding top and bottom (left is not recommended) */
+      .icon-and-text {
+
+        padding-top: 6px;
+        padding-bottom: 6px;
+
+        /* changing the selected item properties */
+        &.selected {
+          
+          
+        }
+
+        /* changing the icons of the folders expanded */
+        .icon {
+          width: 24px !important;
+          height: 24px !important;
+
+          /* changing the icons of the folders colapsed */
+          &.colapsed {
+            background-image: url(https://denifakedata.herokuapp.com/images/closed-folder.png) !important;
+          }
+          /* changing the icons of the folders expanded */
+          &.expanded {
+            background-image: url(https://denifakedata.herokuapp.com/images/opened-folder.png) !important;
+          }
+
+          /* changing the icons of the items */
+          &.isleaf {
+            background-image: url(https://denifakedata.herokuapp.com/images/dog.png) !important;
+          }
+
+        }
+
+
+      }
+
+    }
+
+  }
+
+}
