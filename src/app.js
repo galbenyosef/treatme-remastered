@@ -24,7 +24,7 @@ import { LocalesModel } from './api/locales/locales_model';
 import { UserModel } from './api/users/user_model'
 import { AdminModel } from './api/admins/admin_model'
 
-mongoose.connect(config.connectionString,{ useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false, autoReconnect:true, reconnectTries:Number.MAX_VALUE, reconnectInterval:10000 })
+mongoose.connect(config.connectionString,{ useUnifiedTopology:true, useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false, autoReconnect:true, reconnectTries:Number.MAX_VALUE, reconnectInterval:10000 })
 mongoose.set('useCreateIndex', true)
 mongoose.Promise = global.Promise
 let db = mongoose.connection
@@ -110,6 +110,9 @@ process.on('SIGINT',() => {
   })
 })
 
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname + '/client/build/index.html'))
+})
 
 
 
