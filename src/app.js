@@ -69,12 +69,12 @@ db.on('connected', async () => {
       direction: 'rtl'
     }
   ]
-  try{
+/*   try{
     LocalesModel.insertMany(locales)
   }
   catch(e){
     console.log('locales exists')
-  }
+  } */
 
   //admin api
   app.use('/titles', titlesRouter);
