@@ -5,24 +5,24 @@ import cors from 'cors'
 import passport from 'passport'
 import path from 'path'
 import bodyParser from 'body-parser'
-import { jwtLogin } from '../src/passport';
-import { config } from './config';
-import { specialitiesRouter } from '../src/api/specialities/specialities_routes'
-import { loginRouter } from '../src/api/login/login_routes';
-import { localesRouter } from '../src/api/locales/locales_routes';
-import { titlesRouter } from '../src/api/titles/titles_routes';
-import { usersRouter } from '../src/api/users/users_routes';
-import { visitsRouter } from '../src/api/visits/visits_routes';
-import { hmosRouter } from '../src/api/hmos/hmos_routes';
-import { degreesRouter } from '../src/api/degrees/degrees_routes';
-import { languagesRouter } from '../src/api/languages/languages_routes';
-import { translationsRouter } from '../src/api/translations/translations_routes';
-import { adminRouter } from '../src/api/admins/admins_routes';
-import { dataRouter } from '../src/api/data/data';
-import { registerRouter } from '../src/api/register/register_routes';
-import { LocalesModel } from './api/locales/locales_model';
-import { UserModel } from './api/users/user_model'
-import { AdminModel } from './api/admins/admin_model'
+import { jwtLogin } from './src/passport';
+import { config } from './src/config';
+import { specialitiesRouter } from './src/api/specialities/specialities_routes'
+import { loginRouter } from './src/api/login/login_routes';
+import { localesRouter } from './src/api/locales/locales_routes';
+import { titlesRouter } from './src/api/titles/titles_routes';
+import { usersRouter } from './src/api/users/users_routes';
+import { visitsRouter } from './src/api/visits/visits_routes';
+import { hmosRouter } from './src/api/hmos/hmos_routes';
+import { degreesRouter } from './src/api/degrees/degrees_routes';
+import { languagesRouter } from './src/api/languages/languages_routes';
+import { translationsRouter } from './src/api/translations/translations_routes';
+import { adminRouter } from './src/api/admins/admins_routes';
+import { dataRouter } from './src/api/data/data';
+import { registerRouter } from './src/api/register/register_routes';
+import { LocalesModel } from './src/api/locales/locales_model';
+import { UserModel } from './src/api/users/user_model'
+import { AdminModel } from './src/api/admins/admin_model'
 
 mongoose.connect(config.connectionString,{ useUnifiedTopology:true, useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false, autoReconnect:true, reconnectTries:Number.MAX_VALUE, reconnectInterval:10000 })
 mongoose.set('useCreateIndex', true)

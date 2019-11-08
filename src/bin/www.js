@@ -7,7 +7,7 @@
 import https from 'https'
 import http from 'http'
 import fs from 'fs'
-import app from '../app';
+import app from '../../app';
 import debugLib from 'debug';
 
 const debug = debugLib('your-project-name:server');
