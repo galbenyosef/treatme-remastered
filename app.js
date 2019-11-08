@@ -37,7 +37,7 @@ db.on('connected', async () => {
   app.use(bodyParser.json({limit: "50mb"}));
   app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
   // Serve static files from the React frontend app
-  app.use(express.static(path.join(__dirname, 'client/build')))
+  app.use(express.static(path.join(__dirname, '/client/build')))
   app.use(express.static(path.join(__dirname, '/images')))
   app.use(express.static(path.join(__dirname, '/public')))
   app.use(passport.initialize())
