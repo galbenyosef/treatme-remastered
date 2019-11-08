@@ -73,7 +73,7 @@ db.on('connected', async () => {
     LocalesModel.insertMany(locales)
   }
   catch(e){
-    
+    console.log('locales exists')
   }
 
   //admin api
