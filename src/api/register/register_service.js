@@ -19,7 +19,7 @@ export const register = async (newCandidate,localeId) => {
         mainSpeciality: [],
         mobile: newCandidate.mobile,
         email: newCandidate.email,
-        vcard:[ {localeId,value:[{'url':`${process.env.NODE_ENV.trim() == 'development' ? config.devClient:config.client}/card/${newCandidate.username}`}]} ]
+        vcard:[ {localeId,value:[{'url':`${process.env.NODE_ENV == 'development' ? config.devClient:config.client}/card/${newCandidate.username}`}]} ]
     }
 
     const emailCount = await UserModel.countDocuments({'email': newCandidate.email})
