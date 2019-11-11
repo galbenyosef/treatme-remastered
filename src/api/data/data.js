@@ -26,11 +26,11 @@ const getMultiLocaledValue = (array,localeId) => {
 
   if (array && array.length){
     let filtered = array.filter(val => 
-      val.localeId.equals(localeId)
+      val.localeId ==(localeId)
     )
     if (filtered && filtered.length && filtered[0].value && filtered[0].value.length){
       retval = filtered[0].value.map(val => {
-        const locale = val.locales && val.locales.length && val.locales.find(_locale => _locale.localeId.equals(localeId))
+        const locale = val.locales && val.locales.length && val.locales.find(_locale => _locale.localeId ==(localeId))
         return {
           id: val._id,
           value: locale && locale.value || '',
@@ -44,14 +44,14 @@ const getMultiLocaledValue = (array,localeId) => {
 
 const userToClient = (user,localeId) => {
 
-  const firstname = user.firstname && user.firstname.length && user.firstname.find(locale => locale.localeId.equals(localeId))
-  const lastname = user.lastname && user.lastname.length && user.lastname.find(locale => locale.localeId.equals(localeId))
-  const description = user.description && user.description.length && user.description.find(locale => locale.localeId.equals(localeId))
-  const about = user.about && user.about.length && user.about.find(locale => locale.localeId.equals(localeId))
-  const locations = user.locations && user.locations.length && user.locations.find(locale => locale.localeId.equals(localeId))
-  const _certifications = user.certifications && user.certifications.length && user.certifications.find(locale => locale.localeId.equals(localeId))
+  const firstname = user.firstname && user.firstname.length && user.firstname.find(locale => locale.localeId ==(localeId))
+  const lastname = user.lastname && user.lastname.length && user.lastname.find(locale => locale.localeId ==(localeId))
+  const description = user.description && user.description.length && user.description.find(locale => locale.localeId ==(localeId))
+  const about = user.about && user.about.length && user.about.find(locale => locale.localeId ==(localeId))
+  const locations = user.locations && user.locations.length && user.locations.find(locale => locale.localeId ==(localeId))
+  const _certifications = user.certifications && user.certifications.length && user.certifications.find(locale => locale.localeId ==(localeId))
   const certifications = _certifications && _certifications.value && _certifications.value.map(cer => {
-    const degreeVal = cer.degree.locales && cer.degree.locales.length && cer.degree.locales.find(locale => locale.localeId.equals(localeId))
+    const degreeVal = cer.degree.locales && cer.degree.locales.length && cer.degree.locales.find(locale => locale.localeId ==(localeId))
     return {
       id:cer._id,
       institute: cer.institute,
@@ -64,7 +64,7 @@ const userToClient = (user,localeId) => {
   const mainSpeciality = getMultiLocaledValue(user.mainSpeciality,localeId)
   const specialities = getMultiLocaledValue(user.specialities,localeId)
   const hmos = getMultiLocaledValue(user.hmos,localeId)
-  const vcard = user.vcard && user.vcard.length && user.vcard.find(locale => locale.localeId.equals(localeId))
+  const vcard = user.vcard && user.vcard.length && user.vcard.find(locale => locale.localeId ==(localeId))
   const languages = (user.languages && user.languages.length && user.languages
     .map(language => 
       {
@@ -157,7 +157,7 @@ const getTitles = async (localeId,userId) => {
   )
 
   let retval = titles && titles.length && titles.map(title => {
-    const titleValue = title.locales && title.locales.length && title.locales.find(locale => locale.localeId.equals(localeId))
+    const titleValue = title.locales && title.locales.length && title.locales.find(locale => locale.localeId ==(localeId))
     return {id: title._id, value: titleValue && titleValue.value || ''}
   }).filter(title => title.value) || []
 
@@ -174,7 +174,7 @@ const getHMOs = async (localeId,userId) => {
   )
 
   let retval = hmos && hmos.length && hmos.map(hmo => {
-    const hmoValue = hmo.locales && hmo.locales.length && hmo.locales.find(locale => locale.localeId.equals(localeId))
+    const hmoValue = hmo.locales && hmo.locales.length && hmo.locales.find(locale => locale.localeId ==(localeId))
     return {id: hmo._id, value: hmoValue && hmoValue.value || ''}
   }).filter(hmo => hmo.value) || []
 
@@ -191,7 +191,7 @@ const getDegrees = async (localeId,userId) => {
   )
 
   let retval = degrees && degrees.length && degrees.map(degree => {
-    const degreeValue = degree.locales && degree.locales.length && degree.locales.find(locale => locale.localeId.equals(localeId))
+    const degreeValue = degree.locales && degree.locales.length && degree.locales.find(locale => locale.localeId ==(localeId))
     return {id: degree._id, value: degreeValue && degreeValue.value || ''}
   }).filter(deg => deg.value) || []
 
@@ -272,7 +272,7 @@ const getSpecialitiesTreeByParent = async (parent_id, localeId ,userId) => {
 
   let list = await SpecialityModel.find( {$or:[{new:false},{by:userId}]} )
   let unflattened = unflattenList(list.map( spec => { 
-      const specValue = spec.locales.length && spec.locales.find(loc => loc.localeId.equals(localeId))
+      const specValue = spec.locales.length && spec.locales.find(loc => loc.localeId ==(localeId))
       return {
         id:spec._id,
         new:spec.new,
@@ -301,7 +301,7 @@ const getSpecialitiesByParent = async (parent_id, localeId ,userId) => {
 
   let list = await SpecialityModel.find( {$or:[{new:false},{by:userId}]} )
   let flattened = list.map( spec => { 
-      const specValue = spec.locales.length && spec.locales.find(loc => loc.localeId.equals(localeId))
+      const specValue = spec.locales.length && spec.locales.find(loc => loc.localeId ==(localeId))
       return {
         id:spec._id,
         parent_id:spec.parent_id,
@@ -430,7 +430,7 @@ const update = async (req, res, next) => {
         user.buttons = null
         user.buttons = JSON.parse(JSON.stringify(data.buttons))
 
-        let firstnameLocaleExists = user.firstname.findIndex(loc => loc.localeId.equals(localeId))
+        let firstnameLocaleExists = user.firstname.findIndex(loc => loc.localeId ==(localeId))
         if (firstnameLocaleExists > -1){
           if (data.firstname){
             user.firstname[firstnameLocaleExists].value = data.firstname
@@ -446,7 +446,7 @@ const update = async (req, res, next) => {
           }
         }
 
-        let lastnameLocaleExists = user.lastname.findIndex(loc => loc.localeId.equals(localeId))
+        let lastnameLocaleExists = user.lastname.findIndex(loc => loc.localeId ==(localeId))
         if (lastnameLocaleExists > -1){
           if (data.lastname){
             user.lastname[lastnameLocaleExists].value = data.lastname
@@ -462,7 +462,7 @@ const update = async (req, res, next) => {
           }
         }
 
-        let descriptionLocaleExists = user.description.findIndex(loc => loc.localeId.equals(localeId))
+        let descriptionLocaleExists = user.description.findIndex(loc => loc.localeId ==(localeId))
         if (descriptionLocaleExists > -1){
           if (data.description){
             user.description[descriptionLocaleExists].value = data.description
@@ -478,7 +478,7 @@ const update = async (req, res, next) => {
           }
         }
 
-        let aboutLocaleExists = user.about.findIndex(loc => loc.localeId.equals(localeId))
+        let aboutLocaleExists = user.about.findIndex(loc => loc.localeId ==(localeId))
         if (aboutLocaleExists > -1){
           if (data.about){
             user.about[aboutLocaleExists].value = data.about
@@ -501,17 +501,17 @@ const update = async (req, res, next) => {
             new:true
           }
           const newSpeciality = await new SpecialityModel(newSpecialityObject).save()
-          let mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId.equals(localeId))
+          let mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId ==(localeId))
           mainSpeciality.push({localeId,value:[newSpeciality._id]})
           user.mainSpeciality = mainSpeciality
         }
         else if (data.mainSpeciality.id && mongoose.Types.ObjectId.isValid(data.mainSpeciality.id)){
-          let mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId.equals(localeId))
+          let mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId ==(localeId))
           mainSpeciality.push({localeId,value:[data.mainSpeciality.id]})
           user.mainSpeciality = mainSpeciality
         }
         else {
-          user.mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId.equals(localeId))
+          user.mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId ==(localeId))
         }
 
         if (data.title.id && !mongoose.Types.ObjectId.isValid(data.title.id)){
@@ -521,26 +521,26 @@ const update = async (req, res, next) => {
             new:true,
           }
           const newTitle = await new TitleModel(newTitleObject).save()
-          let title = user.title.filter(loc => !loc.localeId.equals(localeId))
+          let title = user.title.filter(loc => !loc.localeId ==(localeId))
           title.push({localeId,value:[newTitle._id]})
           user.title = title
         }
         else if (data.title.id && mongoose.Types.ObjectId.isValid(data.title.id)){
-          let title = user.title.filter(loc => !loc.localeId.equals(localeId))
+          let title = user.title.filter(loc => !loc.localeId ==(localeId))
           title.push({localeId,value:[data.title.id]})
           user.title = title
         }
         else {
-          user.title = user.title.filter(loc => !loc.localeId.equals(localeId))
+          user.title = user.title.filter(loc => !loc.localeId ==(localeId))
         }
 
         if (data.vcard){
-          let vcard = user.vcard.filter(loc => loc.localeId && !loc.localeId.equals(localeId))
+          let vcard = user.vcard.filter(loc => loc.localeId && !loc.localeId ==(localeId))
           vcard.push({localeId,value:data.vcard})
           user.vcard = vcard
         }
         else {
-          user.vcard = user.vcard.filter(loc => !loc.localeId.equals(localeId))
+          user.vcard = user.vcard.filter(loc => !loc.localeId ==(localeId))
         }
 
         
@@ -551,7 +551,7 @@ const update = async (req, res, next) => {
             if (data.specialities[i].new){
               const exists = await SpecialityModel.findById(data.specialities[i].id)
               if (exists){
-                let localeIndex = exists.locales.findIndex(locale => locale.localeId.equals(localeId))
+                let localeIndex = exists.locales.findIndex(locale => locale.localeId ==(localeId))
                 if (localeIndex > -1){
                   exists.locales[localeIndex].value = data.specialities[i].value
                   await exists.save()
@@ -574,12 +574,12 @@ const update = async (req, res, next) => {
               specialities.push(data.specialities[i].id)
             }
           }
-          let _specialities = user.specialities.filter(loc => !loc.localeId.equals(localeId))
+          let _specialities = user.specialities.filter(loc => !loc.localeId ==(localeId))
           _specialities.push({localeId,value:specialities})
           user.specialities = _specialities
         }
         else {
-          user.specialities = user.specialities.filter(loc => !loc.localeId.equals(localeId))
+          user.specialities = user.specialities.filter(loc => !loc.localeId ==(localeId))
         }
 
         if (data.locations.length){
@@ -588,7 +588,7 @@ const update = async (req, res, next) => {
             locationsVal.push(data.locations[i])
           }
 
-          const localeExists = user.locations.findIndex(loc => loc.localeId.equals(localeId))
+          const localeExists = user.locations.findIndex(loc => loc.localeId ==(localeId))
 
           if (localeExists > -1) {
             user.locations[localeExists].value = locationsVal
@@ -598,7 +598,7 @@ const update = async (req, res, next) => {
           }
         }
         else {
-          const localeExists = user.locations.findIndex(loc => loc.localeId.equals(localeId))
+          const localeExists = user.locations.findIndex(loc => loc.localeId ==(localeId))
           if (localeExists > -1) {
             delete user.locations[localeExists]
           }
@@ -623,7 +623,7 @@ const update = async (req, res, next) => {
             }
           }
 
-          const localeExists = user.certifications.findIndex(cer => cer.localeId.equals(localeId))
+          const localeExists = user.certifications.findIndex(cer => cer.localeId ==(localeId))
 
           if (localeExists > -1) {
             user.certifications[localeExists].value = certificationsVal
@@ -633,7 +633,7 @@ const update = async (req, res, next) => {
           }
         }
         else {
-          const localeExists = user.certifications.findIndex(cer => cer.localeId.equals(localeId))
+          const localeExists = user.certifications.findIndex(cer => cer.localeId ==(localeId))
           if (localeExists > -1) {
             delete user.certifications[localeExists]
           }
@@ -670,12 +670,12 @@ const update = async (req, res, next) => {
             }
           }
 
-          let _hmos = user.hmos.filter(loc => !loc.localeId.equals(localeId))
+          let _hmos = user.hmos.filter(loc => !loc.localeId ==(localeId))
           _hmos.push({localeId,value:hmos})
           user.hmos = _hmos
         }
         else {
-          user.hmos = user.hmos.filter(loc => !loc.localeId.equals(localeId))
+          user.hmos = user.hmos.filter(loc => !loc.localeId ==(localeId))
         }
 
         if (data.images){
@@ -755,7 +755,7 @@ const getTranslations = async (req,res,next) => {
     try{
       const translations = await TranslationModel.find({})
       let strings = translations.map(string => {
-        let stringValue = string.locales && string.locales.find(_locale => _locale.localeId.equals(localeId))
+        let stringValue = string.locales && string.locales.find(_locale => _locale.localeId ==(localeId))
         return {
           source:string.source,
           value:stringValue && stringValue.value || ''
