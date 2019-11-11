@@ -78,7 +78,7 @@ class SpecialitiesTree extends React.Component {
 
     const {specialities,removeSpeciality} = this.props
     const {newItems} = this.state
-
+    console.log(item)
     return (
       <div style={{display:'flex',flexDirection:'row',alignItems:'center',justifyContent:'space-between',width:'100%'}} >
         <Checkbox
@@ -97,7 +97,7 @@ class SpecialitiesTree extends React.Component {
           /> :
           <TextField
             disabled
-            value={item.text}
+            value={item.value}
             margin="none"
           />
         }
