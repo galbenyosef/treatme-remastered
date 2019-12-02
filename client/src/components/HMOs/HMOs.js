@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { ExpansionPanel } from '../ExpansionPanel/ExpansionPanel';
-import { AutosuggestComponent } from '../Autosuggest/Autosuggest';
+import Select from 'react-select'
 import { toggleHMO } from '../../actions/userActions';
 import { fromStrings } from '../Utilities/languageUtils';
 
@@ -27,7 +27,7 @@ class HMOs extends React.Component {
           <div style={{display:'flex',flexDirection:'column',justifyContent:'space-evenly',borderTop:'1px dashed grey',alignItems:'center'}}>
           { !readonly &&
             <div style={{margin:'10px',textAlign:'center',width:'50%'}} >
-              <AutosuggestComponent addable={true} setFunction={toggleHMO} data={hmosData}/>
+              <Select onChange={toggleHMO} options={hmosData}/>
             </div>
           }
             {

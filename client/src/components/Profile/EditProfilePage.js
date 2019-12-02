@@ -66,7 +66,7 @@ class EditProfilePage extends React.Component {
                         
                         <Title/>
                         
-                        <Specialities/>
+                       {/*  <Specialities/> */}
 
                         <Languages/>
                         

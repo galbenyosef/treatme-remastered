@@ -2,19 +2,16 @@ import { register as _register} from "../services/user.service";
 import { history } from "../config/history";
 import { PROGRESS_SHOW, PROGRESS_HIDE, TOGGLE_TERMS, REGISTER_CHANGE_FIELD, REGISTER_CHECK_FIELD } from "./constants";
 
-export const register = (user,localeId) => dispatch => {
+export const register = (user) => dispatch => {
 
   dispatch({type:PROGRESS_SHOW})
 
   const {username} = user
-  _register(user,localeId)
+  _register(user)
       .then(response => {
           if (response.data){
-              localStorage.setItem('treatmeUser',JSON.stringify(response.data))
-              if (user.mainSpeciality.length)
-                history.replace(`/card/${username}/admin`)
-              else
-                history.replace('/login')
+            localStorage.setItem('treatmeUser',JSON.stringify(response.data))
+            history.replace(`/card/${username}/admin`)
           }
       })
       .catch(err => {

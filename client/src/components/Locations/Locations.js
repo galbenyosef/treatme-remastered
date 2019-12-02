@@ -77,7 +77,7 @@ class Locations extends React.Component {
                             <div key={`${dayIdx}`} style={{width:'100%',textAlign:'right'}}>
                               <div style={{display: 'flex',flexDirection: 'row',justifyContent: 'flexStart',alignItems: 'center',padding: '0px 20px'}}>
                               {
-                                location.daily_operations[day].length || !readonly ? `${fromStrings(strings,`locations-${day}`)}` : null
+                                location.daily_operations && location.daily_operations[day].length || !readonly ? `${fromStrings(strings,`locations-${day}`)}` : null
                               }
                               {
                                 !readonly &&

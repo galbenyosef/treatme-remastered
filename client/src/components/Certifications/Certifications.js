@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import { ExpansionPanel } from '../ExpansionPanel/ExpansionPanel';
 import { removeCertification,addCertification,changeCertification, setDegree } from '../../actions/userActions';
 import { fromStrings } from '../Utilities/languageUtils';
-import { AutosuggestComponent } from '../Autosuggest/Autosuggest';
+import Select from 'react-select'
 
 class Certifications extends React.Component {
 
@@ -54,13 +54,12 @@ class Certifications extends React.Component {
                       :
                       <div style={{display:'flex',flexWrap:'wrap',justifyContent:'space-around'}}>
                           {
-                            <AutosuggestComponent
-                             addable
-                             showValue
-                             placeholder={fromStrings(strings,'certifications-degree')}
-                             setFunction={(degree) => setDegree(certificationIdx,degree)}
-                             value={certification.degree.value || ''}
-                             data={degrees}/>
+                            <Select
+                              isRtl
+                              placeholder={fromStrings(strings,'certifications-degree')}
+                              onChange={(degree) => setDegree(certificationIdx,degree)}
+                              value={certification.degree.value || ''}
+                              options={degrees}/>
                           }
                           {
                             <TextField

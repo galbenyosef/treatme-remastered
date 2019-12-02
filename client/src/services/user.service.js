@@ -16,7 +16,7 @@ export const forgotPassword = (username) => axios.post(`${host}/data/forgotPassw
 
 export const getLoginPageData = (localeId) => axios.get(`${host}/data/login?localeId=${localeId}`)
 
-export const getRegisterPageData = (localeId) => axios.get(`${host}/data/register?localeId=${localeId}`)
+export const getRegisterPageData = () => axios.get(`${host}/data/register`)
 
 export const getViewPageData = (localeId,username) => axios.get(`${host}/data/view?localeId=${localeId}&username=${username}`)
 

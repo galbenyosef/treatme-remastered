@@ -1,14 +1,13 @@
 import mongoose from 'mongoose'
 import vCard from 'vcards-js'
-import { LocaledObject } from '../../../src/models/localedObject';
-import { createMultipleLocaledObject } from '../../../src/models/multipleLocaledObject';
+import { LocaledObject } from '../../helpers/localedObject'
 
-const dayHours = mongoose.Schema({
+const dayHours = {
   from:Date,
   to:Date,
-},{ _id: false})
+}
 
-const weekDays = mongoose.Schema({
+const weekDays = {
   sunday:[dayHours],
   monday:[dayHours],
   tuesday:[dayHours],
@@ -16,43 +15,43 @@ const weekDays = mongoose.Schema({
   thursday:[dayHours],
   friday:[dayHours],
   saturday:[dayHours],
-},{ _id: false})
+}
 
-const Location = mongoose.Schema({
-  streetname: '',
+const Location = {
+  streetname: LocaledObject,
   streetnumber: '',
   postcode: '',
-  name: '',
-  position: '',
+  name: LocaledObject,
+  role: LocaledObject,
   accessibility: Boolean,
-  city: '',
-  country: '',
+  city: LocaledObject,
+  country: LocaledObject,
   mobile: '',
   email: '',
-  daily_operations: { type: weekDays },
-  comment: ''
-},{ _id: false})
+  activityTime: { type: weekDays },
+  comment: LocaledObject
+}
 
 
-const Certification = mongoose.Schema({
-  institute: '',
+const Certification = {
+  institute: LocaledObject,
   degree: { type: mongoose.Schema.Types.ObjectId, ref: 'Degree' },
-  degreeName: '',
+  degreeName: LocaledObject,
   end: '',
-  comment: '',
-},{ _id: false})
+  comment: LocaledObject,
+}
 
-const Button = mongoose.Schema({
+const Button = {
   data:[],
   checked:false
-},{ _id: false})
+}
 
-const Language = mongoose.Schema({
+const Language = {
   language: { type: mongoose.Schema.Types.ObjectId, ref: 'Language' },
   level: String,
-}, { _id: false});
+}
 
-const Buttons = mongoose.Schema({
+const Buttons = {
 
   call: Button,
   facebook: Button,
@@ -72,49 +71,49 @@ const Buttons = mongoose.Schema({
   waze: Button,
   youtube: Button,
 
-},{ _id: false})
+}
 
 const UserSchema = mongoose.Schema({
 
-    username: { type: String, unique: true, lowercase: true},
-    email: { type: String, lowercase: true},
+    username: { type: String, unique: true, lowercase: true, trim:true},
+    email: { type: String, lowercase: true, trim:true},
     password: String,
-    firstname: { type: [LocaledObject], lowercase: true},
-    lastname: { type: [LocaledObject], lowercase: true},
+    firstname: LocaledObject,
+    lastname: LocaledObject,
     mobile: String,
-    description: { type: [LocaledObject], lowercase: true},
+    description: LocaledObject,
     gender: {type: String, lowercase: true, enum: ['male', 'female', '']},
 
-    title: [createMultipleLocaledObject({ type: mongoose.Schema.Types.ObjectId, ref: 'Title' })],
-    mainSpeciality: [createMultipleLocaledObject({ type: mongoose.Schema.Types.ObjectId, ref: 'Speciality' })],
-    specialities: [createMultipleLocaledObject({ type: mongoose.Schema.Types.ObjectId, ref: 'Speciality' })],
+    title: { type: mongoose.Schema.Types.ObjectId, ref: 'Title' },
+    mainSpeciality: { type: mongoose.Schema.Types.ObjectId, ref: 'Speciality' },
+    specialities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Speciality' }],
     languages: [Language],
-    hmos: [createMultipleLocaledObject({ type: mongoose.Schema.Types.ObjectId, ref: 'HMO' })],
+    hmos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'HMO' }],
 
     images: [String],
 
-    certifications: [createMultipleLocaledObject(Certification)],
+    certifications: [Certification],
    
-    locations: [createMultipleLocaledObject(Location)],
+    locations: [Location],
 
-    about: [LocaledObject],
+    about: LocaledObject,
 
     buttons: Buttons,
 
-    vcard: [createMultipleLocaledObject({})],
+    vcard: [],
 
     searchable: { type: Boolean, default:true },
     active: { type: Boolean, default:true }, //toggled by user
     inactive: { type: Boolean, default: false }, //toggled by admin
     payment: { type: Boolean },
     deleted: { type: Boolean, default:false },
-    verified: { type: Boolean, default:false },
+    verified: { type: Boolean, default:true },
     forgotpassMailSent: { type: Number, default:0 },
-    createdDate: { type: Date, default: Date.now},
     type: {type: String},
     authorized: { type: [String] },
 },{
   versionKey: false,
+  timestamps: true
 });
 
 export const UserModel = mongoose.model('User', UserSchema);

@@ -19,30 +19,7 @@ import { decode } from 'jwt-simple';
 
 const router = express.Router();
 
-
-const getMultiLocaledValue = (array,localeId) => {
-
-  let retval = []
-
-  if (array && array.length){
-    let filtered = array.filter(val => 
-      val.localeId ==(localeId)
-    )
-    if (filtered && filtered.length && filtered[0].value && filtered[0].value.length){
-      retval = filtered[0].value.map(val => {
-        const locale = val.locales && val.locales.length && val.locales.find(_locale => _locale.localeId ==(localeId))
-        return {
-          id: val._id,
-          value: locale && locale.value || '',
-          new: val.new
-        }
-      })
-    }
-  }
-  return retval
-}
-
-const userToClient = (user,localeId) => {
+/* const userToClient = (user,localeId) => {
 
   const firstname = user.firstname && user.firstname.length && user.firstname.find(locale => locale.localeId ==(localeId))
   const lastname = user.lastname && user.lastname.length && user.lastname.find(locale => locale.localeId ==(localeId))
@@ -51,7 +28,7 @@ const userToClient = (user,localeId) => {
   const locations = user.locations && user.locations.length && user.locations.find(locale => locale.localeId ==(localeId))
   const _certifications = user.certifications && user.certifications.length && user.certifications.find(locale => locale.localeId ==(localeId))
   const certifications = _certifications && _certifications.value && _certifications.value.map(cer => {
-    const degreeVal = cer.degree.locales && cer.degree.locales.length && cer.degree.locales.find(locale => locale.localeId ==(localeId))
+  const degreeVal = cer.degree.locales && cer.degree.locales.length && cer.degree.locales.find(locale => locale.localeId ==(localeId))
     return {
       id:cer._id,
       institute: cer.institute,
@@ -91,148 +68,139 @@ const userToClient = (user,localeId) => {
     certifications: certifications || [],
     languages: languages || [],
   }
-}
+} */
 
-const getUserByUsername = async (username,localeId) => {
+const getUserByUsername = async (username) => {
 
-  const user = (
-    await
-    UserModel.
+  const user = await UserModel.
     findOne({username}).
-    select('-inactive -deleted -forgotpassMailSent -password').
-    populate({ path: 'title.value',  select: ['locales']}).
-    populate({ path: 'mainSpeciality.value', select: ['locales'] }).
-    populate({ path: 'specialities.value' , select: ['locales','parent_id','new'] }).
-    populate({ path: 'hmos.value' , select: ['locales'] }).
-    populate('languages.language').
-    populate('certifications.value.degree')
-  )
-  return userToClient(user,localeId)
+    select('-inactive -deleted -forgotpassMailSent -password')
+  
+  return user
+}
+
+const getUserById = async (userId) => {
+
+  const user = await UserModel.aggregate([
+    {
+      $match:{
+        _id:mongoose.Types.ObjectId(userId)
+      }
+    },
+    {
+      $lookup:{
+        from: 'specialities',
+        localField:'mainSpeciality',
+        foreignField: '_id',
+        as: 'mainSpeciality'
+      }
+    },
+    {
+      $unwind: '$mainSpeciality'
+    },
+    {
+      $project:{
+        inactive:false,
+        deleted:false,
+        forgotpassMailSent:false,
+        password:false
+      }
+    },
+    {
+      $addFields: {
+        'mainSpeciality.label': `$mainSpeciality.name`,
+        'mainSpeciality.value': `$mainSpeciality._id`,
+      }
+    }
+  ])
+  return user.length && user[0] || []
+}
+
+
+const getMainSpecialities = async (userId) => {
+
+  const mainSpecialities = await SpecialityModel.aggregate([
+    {
+      $match:{
+        parent_id:null,
+        createdBy:{$in:[userId,null]}
+      }
+    },
+    {
+      $addFields: {
+        'label': `$name`,
+        'value': `$_id`,
+      }
+    }
+  ])
+  console.log(mainSpecialities)
+  return mainSpecialities
 
 }
 
-const getUserById = async (userId,localeId) => {
+const getTitles = async (userId) => {
 
-  const user = (
-    await
-    UserModel.
-    findById(userId).
-    select('-inactive -deleted -forgotpassMailSent -password').
-    populate({ path: 'title.value',  select: ['locales']}).
-    populate({ path: 'mainSpeciality.value', select: ['locales'] }).
-    populate({ path: 'specialities.value' , select: ['locales','parent_id','new'] }).
-    populate({ path: 'hmos.value' , select: ['locales'] }).
-    populate('languages.language').
-    populate({ path:'certifications.value.degree' , select: ['locales']})
-  )
-  return userToClient(user,localeId)
+  const titles = await TitleModel.aggregate([
+    {
+      $match:{
+        parent_id:null,
+        createdBy:{$in:[userId,null]}
+      }
+    },
+    {
+      $addFields: {
+        'label': `$name`,
+        'value': `$_id`,
+      }
+    }
+  ])
 
-}
-
-
-const getMainSpecialities = async (localeId,userId) => {
-
-  const mainSpecialities = (
-    await
-    SpecialityModel.
-    find( { $or:[{parent_id:null,new:false},{parent_id:null,by:userId}] } )
-  )
-
-  let retval = mainSpecialities && mainSpecialities.length && mainSpecialities.map(spec => {
-    const specValue = spec.locales && spec.locales.length && spec.locales.find(locale => locale.localeId == (localeId))
-    return {id: spec._id, value: specValue && specValue.value || ''}
-  }).filter(spec => spec.value) || []
-
-
-  return retval
+  return titles
 
 }
 
-const getTitles = async (localeId,userId) => {
+const getHMOs = async (userId) => {
 
-  const titles = (
-    await
-    TitleModel.
-    find( {$or:[{new:false},{by:userId}]} )
-  )
+  const hmos = await HMOModel.find({createdBy:{$in:[null,userId]}})
 
-  let retval = titles && titles.length && titles.map(title => {
-    const titleValue = title.locales && title.locales.length && title.locales.find(locale => locale.localeId ==(localeId))
-    return {id: title._id, value: titleValue && titleValue.value || ''}
-  }).filter(title => title.value) || []
-
-  return retval
+  return hmos
 
 }
 
-const getHMOs = async (localeId,userId) => {
+const getDegrees = async (userId) => {
 
-  const hmos = (
-    await
-    HMOModel.
-    find( {$or:[{new:false},{by:userId}]} )
-  )
+  const degrees = await DegreeModel.find({createdBy:{$in:[null,userId]}})
 
-  let retval = hmos && hmos.length && hmos.map(hmo => {
-    const hmoValue = hmo.locales && hmo.locales.length && hmo.locales.find(locale => locale.localeId ==(localeId))
-    return {id: hmo._id, value: hmoValue && hmoValue.value || ''}
-  }).filter(hmo => hmo.value) || []
-
-  return retval
-
-}
-
-const getDegrees = async (localeId,userId) => {
-
-  const degrees = (
-    await
-    DegreeModel.
-    find( {$or:[{new:false},{by:userId}]} )
-  )
-
-  let retval = degrees && degrees.length && degrees.map(degree => {
-    const degreeValue = degree.locales && degree.locales.length && degree.locales.find(locale => locale.localeId ==(localeId))
-    return {id: degree._id, value: degreeValue && degreeValue.value || ''}
-  }).filter(deg => deg.value) || []
-
-  return retval
+  return degrees
 
 }
 
 const getLanguages = async () => {
 
-  const languages = (
-    await
-    LanguageModel.
-    find({})
-  )
+  const languages = await LanguageModel.find({})
 
-  let retval = languages && languages.length && languages.map(lang => {
-    return {id: lang._id, value: lang.name || ''}
-  })
-
-  return retval
+  return languages
 
 }
 
-const getLoginPageData = async (localeId) => {
+const getLoginPageData = async () => {
 
  
 
 }
 
-const getRegistrationPageData = async (localeId) => {
+const getRegistrationPageData = async () => {
 
-  const mainSpecialities = await getMainSpecialities(localeId,null)
+  const mainSpecialities = await getMainSpecialities()
 
   return {mainSpecialities}
 
 }
 
-const getViewPageData = async (localeId,username) => {
+const getViewPageData = async (username) => {
 
-  const user = await getUserByUsername(username,localeId)
-  const specialities = await getSpecialitiesByParent(user.mainSpeciality.id,localeId,user._id)
+  const user = await getUserByUsername(username)
+  const specialities = await getSpecialitiesByParent(user.mainSpeciality.id,user._id)
   return {user,specialities}
 
 }
@@ -268,61 +236,49 @@ const unflattenList = arr => {
   return tree;
 }
 
-const getSpecialitiesTreeByParent = async (parent_id, localeId ,userId) => {
+const getSpecialitiesTreeByParent = async (parent_id, userId) => {
 
-  let list = await SpecialityModel.find( {$or:[{new:false},{by:userId}]} )
+  let list = await SpecialityModel.find({createdBy:{$in:[null,userId]}})
+
   let unflattened = unflattenList(list.map( spec => { 
-      const specValue = spec.locales.length && spec.locales.find(loc => loc.localeId ==(localeId))
       return {
         id:spec._id,
         new:spec.new,
         parent_id:spec.parent_id,
-        text:specValue && specValue.value || '',
+        text:spec.text,
       }
   }))
   
   let parent = unflattened.find(obj => obj.id.equals(parent_id))
-
-  /*  function getLeafNodes(obj){
-    if(obj.children.length){
-        obj.children.forEach(function(child){getLeafNodes(child)});
-    } else{
-        obj.isLeaf = true
-        delete obj.children
-    }
-  }
-
-  getLeafNodes(parent) */
   
-  return [parent] || []
+  return [parent]
 }
 
-const getSpecialitiesByParent = async (parent_id, localeId ,userId) => {
+const getSpecialitiesByParent = async (parent_id, userId) => {
 
-  let list = await SpecialityModel.find( {$or:[{new:false},{by:userId}]} )
+  let list = await SpecialityModel.find({createdBy:{$in:[null,userId]}})
   let flattened = list.map( spec => { 
-      const specValue = spec.locales.length && spec.locales.find(loc => loc.localeId ==(localeId))
-      return {
+    return {
         id:spec._id,
         parent_id:spec.parent_id,
-        value:specValue && specValue.value || '',
+        value:spec.text,
         new:spec.new
       }
   })
-  return flattened || []
+  return flattened
 }
 
-const getEditPageData = async (localeId,userId) => {
+const getEditPageData = async (userId) => {
 
-  const user = await getUserById(userId,localeId)
-  const mainSpecialityId = user.mainSpeciality && user.mainSpeciality.id
-  const specialities = mainSpecialityId ? await getSpecialitiesByParent(mainSpecialityId,localeId,userId) : []
-  const specialitiesTree = mainSpecialityId ? await getSpecialitiesTreeByParent(mainSpecialityId,localeId,userId) : []
-  const mainSpecialities = await getMainSpecialities(localeId,userId)
-  const titles = await getTitles(localeId,userId)
+  const user = await getUserById(userId)
+  const mainSpecialityId = user.mainSpeciality
+  const specialities = mainSpecialityId ? await getSpecialitiesByParent(mainSpecialityId,userId) : []
+  const specialitiesTree = mainSpecialityId ? await getSpecialitiesTreeByParent(mainSpecialityId,userId) : []
+  const mainSpecialities = await getMainSpecialities(userId)
+  const titles = await getTitles(userId)
   const languages = await getLanguages()
-  const hmos = await getHMOs(localeId,userId)
-  const degrees = await getDegrees(localeId,userId)
+  const hmos = await getHMOs(userId)
+  const degrees = await getDegrees(userId)
   return {user,mainSpecialities,specialities,titles,languages,hmos,degrees,specialitiesTree}
 
 }
@@ -330,7 +286,7 @@ const getEditPageData = async (localeId,userId) => {
 const getPage = async (req, res, next) => {
 
   const promise = new Promise(async (resolve,reject) => {
-    const {localeId,username} = req.query
+    const {username} = req.query
     const {user} = req
     const page = url.parse(req.url).pathname
     let data = null
@@ -339,22 +295,23 @@ const getPage = async (req, res, next) => {
       switch(page){
   
         case '/login':{
-          data = await getLoginPageData(localeId)
+          data = await getLoginPageData()
           break;
         }
         case '/register':{
-          data = await getRegistrationPageData(localeId)
+          data = await getRegistrationPageData()
           break;
         }
         case '/view':{
           if (username){
-            data = await getViewPageData(localeId,username)
+            data = await getViewPageData(username)
             break;
           }
         }
         case '/edit':{
           if (user.id){
-            data = await getEditPageData(localeId,user.id)
+            console.log(user.id)
+            data = await getEditPageData(user.id)
             break;
           }
         }
@@ -390,24 +347,13 @@ const update = async (req, res, next) => {
 
 
     else {
-      const {localeId} = req.query
 
       let user = null
-      if (!localeId){
-        reject(`Unabled to recognize request locale`)
-      }
 
       if (req.user && req.user.id)
         user = await UserModel.findById(req.user.id).
-        select('-inactive -deleted -forgotpassMailSent -password').
-        populate({ path: 'title.value',  select: ['locales']}).
-        populate({ path: 'mainSpeciality.value', select: ['locales'] }).
-        populate({ path: 'specialities.value' , select: ['locales','parent_id'] }).
-        populate({ path: 'hmos.value' , select: ['locales'] }).
-        populate('languages.language').
-        populate('locations.localeId').
-        populate('certifications.localeId')
-
+        select('-inactive -deleted -forgotpassMailSent -password')
+      console.log(user)
       if (user){
         const data = req.body
         user.searchable = data.searchable
@@ -430,110 +376,38 @@ const update = async (req, res, next) => {
         user.buttons = null
         user.buttons = JSON.parse(JSON.stringify(data.buttons))
 
-        let firstnameLocaleExists = user.firstname.findIndex(loc => loc.localeId ==(localeId))
-        if (firstnameLocaleExists > -1){
-          if (data.firstname){
-            user.firstname[firstnameLocaleExists].value = data.firstname
-            user.firstname[firstnameLocaleExists].localeId = localeId
-          }
-          else{
-            user.firstname.splice(firstnameLocaleExists,1)
-          }
-        }
-        else{
-          if (data.firstname){
-            user.firstname.push({localeId,value:data.firstname})
-          }
-        }
+        user.firstname = data.firstname
 
-        let lastnameLocaleExists = user.lastname.findIndex(loc => loc.localeId ==(localeId))
-        if (lastnameLocaleExists > -1){
-          if (data.lastname){
-            user.lastname[lastnameLocaleExists].value = data.lastname
-            user.lastname[lastnameLocaleExists].localeId = localeId
-          }
-          else{
-            user.lastname.splice(lastnameLocaleExists,1)
-          }
-        }
-        else{
-          if (data.lastname){
-            user.lastname.push({localeId,value:data.lastname})
-          }
-        }
+        user.lastname = data.lastname
 
-        let descriptionLocaleExists = user.description.findIndex(loc => loc.localeId ==(localeId))
-        if (descriptionLocaleExists > -1){
-          if (data.description){
-            user.description[descriptionLocaleExists].value = data.description
-            user.description[descriptionLocaleExists].localeId = localeId
-          }
-          else{
-            user.description.splice(descriptionLocaleExists,1)
-          }
-        }
-        else{
-          if (data.description){
-            user.description.push({localeId,value:data.description})
-          }
-        }
+        user.description = data.description
 
-        let aboutLocaleExists = user.about.findIndex(loc => loc.localeId ==(localeId))
-        if (aboutLocaleExists > -1){
-          if (data.about){
-            user.about[aboutLocaleExists].value = data.about
-            user.about[aboutLocaleExists].localeId = localeId
-          }
-          else{
-            user.about.splice(aboutLocaleExists,1)
-          }
-        }
-        else{
-          if (data.about){
-            user.about.push({localeId,value:data.about})
-          }
-        }
+        user.about = data.about
 
-        if (data.mainSpeciality.id && !mongoose.Types.ObjectId.isValid(data.mainSpeciality.id)){
+        if (!data.mainSpeciality._id){
           const newSpecialityObject = {
-            locales: [{localeId,value:data.mainSpeciality.value}],
-            by: req.user.id,
-            new:true
+            name: data.mainSpeciality.name,
+            createdBy: req.user.id,
           }
-          const newSpeciality = await new SpecialityModel(newSpecialityObject).save()
-          let mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId ==(localeId))
-          mainSpeciality.push({localeId,value:[newSpeciality._id]})
-          user.mainSpeciality = mainSpeciality
+          const newSpeciality = await SpecialityModel.create(newSpecialityObject)
+          user.mainSpeciality = newSpeciality._id
         }
-        else if (data.mainSpeciality.id && mongoose.Types.ObjectId.isValid(data.mainSpeciality.id)){
-          let mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId ==(localeId))
-          mainSpeciality.push({localeId,value:[data.mainSpeciality.id]})
-          user.mainSpeciality = mainSpeciality
-        }
-        else {
-          user.mainSpeciality = user.mainSpeciality.filter(loc => !loc.localeId ==(localeId))
+        else if (data.mainSpeciality.id){
+          user.mainSpeciality = mainSpeciality._id
         }
 
-        if (data.title.id && !mongoose.Types.ObjectId.isValid(data.title.id)){
+        if (!data.title._id){
           const newTitleObject = {
-            locales: [{localeId,value:data.title.value}],
-            by: req.user.id,
-            new:true,
+            name: data.mainSpeciality.name,
+            createdBy: req.user.id,
           }
-          const newTitle = await new TitleModel(newTitleObject).save()
-          let title = user.title.filter(loc => !loc.localeId ==(localeId))
-          title.push({localeId,value:[newTitle._id]})
-          user.title = title
+          const newTitle = await TitleModel.create(newTitleObject)
+          user.title = newTitle._id
         }
-        else if (data.title.id && mongoose.Types.ObjectId.isValid(data.title.id)){
-          let title = user.title.filter(loc => !loc.localeId ==(localeId))
-          title.push({localeId,value:[data.title.id]})
-          user.title = title
+        else if (data.title._id){
+          user.title = data.title._id
         }
-        else {
-          user.title = user.title.filter(loc => !loc.localeId ==(localeId))
-        }
-
+/* 
         if (data.vcard){
           let vcard = user.vcard.filter(loc => loc.localeId && !loc.localeId ==(localeId))
           vcard.push({localeId,value:data.vcard})
@@ -541,142 +415,49 @@ const update = async (req, res, next) => {
         }
         else {
           user.vcard = user.vcard.filter(loc => !loc.localeId ==(localeId))
-        }
+        } */
 
-        
-        if (data.specialities.length){
+        let specialities = []
 
-          let specialities = []
-          for (let i = 0; i <data.specialities.length ; i++){
-            if (data.specialities[i].new){
-              const exists = await SpecialityModel.findById(data.specialities[i].id)
-              if (exists){
-                let localeIndex = exists.locales.findIndex(locale => locale.localeId ==(localeId))
-                if (localeIndex > -1){
-                  exists.locales[localeIndex].value = data.specialities[i].value
-                  await exists.save()
-                  specialities.push(exists)
-                }
-              }
-              else{
-                const newSpecialityObject = {
-                  _id: data.specialities[i].id,
-                  locales: [{localeId,value:data.specialities[i].value}],
-                  parent_id:data.specialities[i].parent_id,
-                  by: req.user.id,
-                  new:true
-                }
-                const newSpeciality = await new SpecialityModel(newSpecialityObject).save()
-                specialities.push(newSpeciality._id)
-             }
+        for (let i = 0; i <data.specialities.length ; i++){
+          if (data.specialities[i]._id)
+            specialities.push(data.specialities[i].id)
+          else {
+            const newSpecialityObject = {
+              name: data.specialities[i].name,
+              parent_id:data.specialities[i].parent_id,
+              createdBy: req.user.id,
             }
-            else if (data.specialities[i].id && mongoose.Types.ObjectId.isValid(data.specialities[i].id)){
-              specialities.push(data.specialities[i].id)
-            }
+            const newSpeciality = await SpecialityModel.create(newSpecialityObject)
+            specialities.push(newSpeciality._id)
           }
-          let _specialities = user.specialities.filter(loc => !loc.localeId ==(localeId))
-          _specialities.push({localeId,value:specialities})
-          user.specialities = _specialities
-        }
-        else {
-          user.specialities = user.specialities.filter(loc => !loc.localeId ==(localeId))
         }
 
-        if (data.locations.length){
-          let locationsVal = []
-          for (let i = 0; i <data.locations.length ; i++){
-            locationsVal.push(data.locations[i])
-          }
+/*         user.specialities = _specialities
+ */
+        user.locations = data.locations
 
-          const localeExists = user.locations.findIndex(loc => loc.localeId ==(localeId))
+        user.certifications = data.certifications
 
-          if (localeExists > -1) {
-            user.locations[localeExists].value = locationsVal
+/*         user.languages = languages
+ */
+
+        let hmos = []
+
+        for (let i = 0; i <data.hmos.length ; i++){
+          if (data.hmos[i]._id){
+            hmos.push(data.hmos[i]._id)
           }
           else {
-            user.locations.push({localeId,value:locationsVal})
-          }
-        }
-        else {
-          const localeExists = user.locations.findIndex(loc => loc.localeId ==(localeId))
-          if (localeExists > -1) {
-            delete user.locations[localeExists]
-          }
-        }
-
-        if (data.certifications.length){
-          let certificationsVal = []
-          for (let i = 0; i <data.certifications.length ; i++){
-            if (data.certifications[i].degree && data.certifications[i].degree.id && !mongoose.Types.ObjectId.isValid(data.certifications[i].degree.id)){
-              const newDegreeObject = {
-                locales: [{localeId,value:data.certifications[i].degree.value}],
-                by: req.user.id,
-                new:true,
-              }
-              const newDegree = await new DegreeModel(newDegreeObject).save()
-              let newCertification = {...data.certifications[i],degree:newDegree._id}
-              certificationsVal.push(newCertification)
+            const newHMOObject = {
+              name: data.hmois[i].name,
+              by: req.user.id,
             }
-            else if (data.certifications[i].degree && data.certifications[i].degree.id && mongoose.Types.ObjectId.isValid(data.certifications[i].degree.id)){
-              let newCertification = {...data.certifications[i],degree:data.certifications[i].degree.id}
-              certificationsVal.push(newCertification)
-            }
-          }
-
-          const localeExists = user.certifications.findIndex(cer => cer.localeId ==(localeId))
-
-          if (localeExists > -1) {
-            user.certifications[localeExists].value = certificationsVal
-          }
-          else {
-            user.certifications.push({localeId,value:certificationsVal})
+            const newHMO = await HMOModel.create(newHMOObject)
+            hmos.push(newHMO._id)
           }
         }
-        else {
-          const localeExists = user.certifications.findIndex(cer => cer.localeId ==(localeId))
-          if (localeExists > -1) {
-            delete user.certifications[localeExists]
-          }
-        }
-
-        if (data.languages.length){
-          const languages = data.languages.map(obj => {
-            return {
-              language:obj.id,
-              level:obj.level,
-            }
-          })
-          user.languages = languages
-        }
-        else{
-          user.languages = []
-        }
-
-        if (data.hmos.length){
-          let hmos = []
-
-          for (let i = 0; i <data.hmos.length ; i++){
-            if (data.hmos[i].id && !mongoose.Types.ObjectId.isValid(data.hmos[i].id)){
-              const newHMOObject = {
-                locales: [{localeId,value:data.hmos[i].value}],
-                by: req.user.id,
-                new:true
-              }
-              const newHMO = await new HMOModel(newHMOObject).save()
-              hmos.push(newHMO._id)
-            }
-            else if (data.hmos[i].id && mongoose.Types.ObjectId.isValid(data.hmos[i].id)){
-              hmos.push(data.hmos[i].id)
-            }
-          }
-
-          let _hmos = user.hmos.filter(loc => !loc.localeId ==(localeId))
-          _hmos.push({localeId,value:hmos})
-          user.hmos = _hmos
-        }
-        else {
-          user.hmos = user.hmos.filter(loc => !loc.localeId ==(localeId))
-        }
+        user.hmos = hmos
 
         if (data.images){
 
@@ -713,10 +494,9 @@ const getSpecialities = async (req,res,next) => {
 
   const promise = new Promise(async (resolve,reject) => {
     const mainSpecialityId = req.query.parentId
-    const localeId = req.query.localeId
     if (mainSpecialityId){
-      const specialitiesTree = mainSpecialityId ? await getSpecialitiesTreeByParent(mainSpecialityId,localeId,req.user.id) : []
-      const specialities = mainSpecialityId ? await getSpecialitiesByParent(mainSpecialityId,localeId,req.user.id) : []
+      const specialitiesTree = mainSpecialityId ? await getSpecialitiesTreeByParent(mainSpecialityId,req.user.id) : []
+      const specialities = mainSpecialityId ? await getSpecialitiesByParent(mainSpecialityId,req.user.id) : []
       resolve({specialities,specialitiesTree})
     }
     else {
@@ -748,20 +528,12 @@ const getLocales = async (req,res,next) => {
 
 const getTranslations = async (req,res,next) => {
 
-  const {localeId} = req.query
-
   const promise = new Promise(async (resolve,reject) => {
 
     try{
       const translations = await TranslationModel.find({})
-      let strings = translations.map(string => {
-        let stringValue = string.locales && string.locales.find(_locale => _locale.localeId ==(localeId))
-        return {
-          source:string.source,
-          value:stringValue && stringValue.value || ''
-        }
-      })
-      resolve(strings)
+
+      resolve(translations)
     }
     catch(err){
       reject(err)

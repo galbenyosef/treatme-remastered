@@ -20,9 +20,6 @@ import { translationsRouter } from './src/api/translations/translations_routes';
 import { adminRouter } from './src/api/admins/admins_routes';
 import { dataRouter } from './src/api/data/data';
 import { registerRouter } from './src/api/register/register_routes';
-import { LocalesModel } from './src/api/locales/locales_model';
-import { UserModel } from './src/api/users/user_model'
-import { AdminModel } from './src/api/admins/admin_model'
 
 mongoose.connect(config.connectionString,{ useUnifiedTopology:true, useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false, autoReconnect:true, reconnectTries:Number.MAX_VALUE, reconnectInterval:10000 })
 mongoose.set('useCreateIndex', true)
@@ -114,8 +111,5 @@ process.on('SIGINT',() => {
       process.exit(0);
   })
 })
-
-
-
 
 export default app

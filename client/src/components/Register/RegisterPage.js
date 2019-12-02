@@ -7,8 +7,8 @@ import BottomBarBasic from '../BottomBar/BottomBarBasic';
 import TermsDialog from '../Dialogs/TermsDialog';
 import regExp from '../Utilities/regExp';
 import { register,toggleTerms,handleChange,handleCheck} from '../../actions/registerActions';
-import { setMainSpecialityRegistration } from '../../actions/userActions';
-import { AutosuggestComponent } from '../Autosuggest/Autosuggest';
+import { setMainSpecialityRegistration, setDataMainSpecialities } from '../../actions/userActions';
+import Select from 'react-select/creatable'
 import { getRegisterPageData } from '../../actions/dataActions';
 import { fromStrings } from '../Utilities/languageUtils';
 
@@ -40,7 +40,6 @@ class RegisterPage extends React.Component {
             mobile,
             mainSpeciality,
             register,
-            locale
         } = this.props
 
         const user = {
@@ -53,7 +52,7 @@ class RegisterPage extends React.Component {
             mainSpeciality
         }
 
-        register(user,locale._id);
+        register(user);
 
     }
 
@@ -110,11 +109,12 @@ class RegisterPage extends React.Component {
             toggleTerms,
             handleChange,
             handleCheck,
-            setMainSpecialityRegistration
+            setMainSpecialityRegistration,
+            setDataMainSpecialities
         } = this.props
 
         let buttonEnabled = this.isValid()
-
+        console.log(mainSpecialities)
         return (
             <div style={{minHeight:'100vh',margin:'auto', maxWidth:'500px', display:'flex', flexDirection:'column',alignItems:'center',textAlign:'center'}}>
 
@@ -130,29 +130,33 @@ class RegisterPage extends React.Component {
                             InputLabelProps={{style:{right:0,margin:'auto',position:'static'}}}
                             inputProps={{style:{textAlign:'center'}}}
                             style={{width:'45%'}}
-                            helperText={!!firstname && !regExp._name.test(firstname) && "Minimum length: 2, Maximum length: 16, No special signs allowed"}
-                            error={!!firstname && !regExp._name.test(firstname)}
+                            helperText={!!firstname[locale.symbol] && !regExp._name.test(firstname[locale.symbol]) && "Minimum length: 2, Maximum length: 16, No special signs allowed"}
+                            error={!!firstname[locale.symbol] && !regExp._name.test(firstname[locale.symbol])}
                             name="firstname"
                             type="text"
                             label={fromStrings(strings,`register-firstname`)}
-                            value={firstname || ''}
+                            value={firstname[locale.symbol] || ''}
                             onChange={(event) => {
                                 const {name,value} = event.target
-                                handleChange(name,value)}
+                                let newFirstname = {...firstname}
+                                newFirstname[locale.symbol] = value
+                                handleChange(name,newFirstname)}
                             } />
                         <TextField
                             InputLabelProps={{style:{right:0,margin:'auto',position:'static'}}}
                             inputProps={{style:{textAlign:'center'}}}
                             style={{width:'45%'}} 
-                            helperText={!!lastname && !regExp._name.test(lastname) && "Minimum length: 2, Maximum length: 16, No special signs allowed"}
-                            error={!!lastname && !regExp._name.test(lastname)}
+                            helperText={!!lastname[locale.symbol] && !regExp._name.test(lastname[locale.symbol]) && "Minimum length: 2, Maximum length: 16, No special signs allowed"}
+                            error={!!lastname[locale.symbol] && !regExp._name.test(lastname[locale.symbol])}
                             name="lastname"
                             type="text"
                             label={fromStrings(strings,`register-lastname`)}
-                            value={lastname || ''}
+                            value={lastname[locale.symbol] || ''}
                             onChange={(event) => {
                                 const {name,value} = event.target
-                                handleChange(name,value)}
+                                let newLastname = {...lastname}
+                                newLastname[locale.symbol] = value
+                                handleChange(name,newLastname)}
                             } />
                     </div>
 
@@ -261,13 +265,26 @@ class RegisterPage extends React.Component {
 
                     {
                         !editor &&
-                        <AutosuggestComponent
-                            addable
-                            showValue={true}
+                        <Select
+                            isClearable
+                            isRtl
+                            isSearchable
+                            styles={{container: style => {return {...style,width:'50%'}}}}
                             placeholder="title-mainSpeciality"
-                            setFunction={setMainSpecialityRegistration}
-                            value={mainSpeciality.value}
-                            data={mainSpecialities}/>
+                            onChange={mainSpec => {
+                                if (mainSpec){
+                                    if (mainSpec.__isNew__)
+                                        setMainSpecialityRegistration({...mainSpec,name:{[locale.symbol]:mainSpec.value}})
+                                    else
+                                        setMainSpecialityRegistration(mainSpec)
+                                    }
+                                else{
+                                    setMainSpecialityRegistration({})
+                                }
+                            }}
+                            value={Object.keys(mainSpeciality).length ? mainSpeciality : null}
+                            formatCreateLabel={text => `${text} [+]`}
+                            options={mainSpecialities.map(m => {return {...m,value:m._id,label:m.name[locale.symbol]}})}/>
                     }
 
                     <Button 
@@ -287,15 +304,16 @@ class RegisterPage extends React.Component {
     }
 }
 
-const mapDispatchToProps = (dispatch,kels )=> {
-    console.log(kels)
+const mapDispatchToProps = (dispatch)=> {
+
     return {
         getRegisterPageData: localeId => dispatch(getRegisterPageData(localeId)),
         register: (user,localeId) => dispatch(register(user,localeId)),
         toggleTerms: () => dispatch(toggleTerms()),
         handleChange: (name,value) => dispatch(handleChange(name,value)),
         handleCheck: (name,checked) => dispatch(handleCheck(name,checked)),
-        setMainSpecialityRegistration: mainSpeciality => dispatch(setMainSpecialityRegistration(mainSpeciality))
+        setMainSpecialityRegistration: mainSpeciality => dispatch(setMainSpecialityRegistration(mainSpeciality)),
+        setDataMainSpecialities: mainSpecialities => dispatch(setDataMainSpecialities(mainSpecialities))
     }
     
 }

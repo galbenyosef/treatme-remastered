@@ -1,10 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { ExpansionPanel } from '../ExpansionPanel/ExpansionPanel';
-import { AutosuggestComponent } from '../Autosuggest/Autosuggest';
-import { toggleLanguage, toggleLanguageSpeaking, toggleLanguageWriting, toggleLanguageReading, changeLanguageLevel } from '../../actions/userActions';
-import { FormGroup, FormControlLabel, Checkbox, Select, FormControl, InputLabel, MenuItem, FormHelperText } from '@material-ui/core';
-import { CheckBox } from '@material-ui/icons';
+import Select from 'react-select'
+import { toggleLanguage, changeLanguageLevel } from '../../actions/userActions';
+import { FormControl, MenuItem } from '@material-ui/core';
 import { fromStrings } from '../Utilities/languageUtils'
 
 class Languages extends React.Component {
@@ -39,7 +38,7 @@ class Languages extends React.Component {
             null
             :
             <div style={{margin:'10px',textAlign:'center',width:'50%'}} >
-              <AutosuggestComponent setFunction={toggleLanguage} data={languagesData}/>
+              <Select onChange={toggleLanguage} options={languagesData}/>
             </div>
           }
           {

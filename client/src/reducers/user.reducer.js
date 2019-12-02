@@ -2,7 +2,7 @@ import vCard from 'vcards-js'
 import { emptyLocation } from '../components/Locations/EmptyLocation';
 import { emptyDayHours } from '../components/Locations/EmptyDayHours';
 import { emptyCertification } from '../components/Certifications/EmptyCertification';
-import { generateObjectId } from '../components/Utilities/generateObjectId';
+import { LocaledObject } from '../components/Utilities/localedObject';
 
 
 const SocialButton = () => {return {data: [], checked:false}}
@@ -36,9 +36,9 @@ const initState =  {
     username: '',
     email: '',
     mobile: '',
-    mainSpeciality: {},
+    mainSpeciality: '',
 
-    title: {},
+    title: '',
     description: '',
     gender: '',
 

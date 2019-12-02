@@ -97,7 +97,7 @@ class SpecialitiesTree extends React.Component {
           /> :
           <TextField
             disabled
-            value={item.value}
+            value={item.text}
             margin="none"
           />
         }

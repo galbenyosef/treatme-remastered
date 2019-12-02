@@ -6,23 +6,20 @@ import { tokenForUser } from "../login/login_service";
 import mongoose from 'mongoose'
 import { SpecialityModel } from "../specialities/speciality_model";
 
-export const register = async (newCandidate,localeId) => {
-
-    if (!localeId)
-        throw({message:`Language is missing`})
-
+export const register = async (newCandidate) => {
     let newUser = {
         username:newCandidate.username,
-        firstname:[],
-        lastname:[],
-        password: '',
-        mainSpeciality: [],
+        firstname:newCandidate.firstname,
+        lastname:newCandidate.lastname,
+        password: newCandidate.password,
+        mainSpeciality: newCandidate.mainSpeciality,
         mobile: newCandidate.mobile,
         email: newCandidate.email,
-        vcard:[ {localeId,value:[{'url':`${process.env.NODE_ENV == 'development' ? config.devClient:config.client}/card/${newCandidate.username}`}]} ]
-    }
+/*         vcard:[ {localeId,value:[{'url':`${process.env.NODE_ENV == 'development' ? config.devClient:config.client}/card/${newCandidate.username}`}]} ]
+ */    }
 
     const emailCount = await UserModel.countDocuments({'email': newCandidate.email})
+    
     let user = await UserModel.findOne({username: newCandidate.username})
 
     if (user) {
@@ -34,44 +31,38 @@ export const register = async (newCandidate,localeId) => {
         throw({message:`Mail ${newCandidate.email} already been used 3 times`})
 
 
-    if (newCandidate.firstname){
-        newUser.firstname.push({localeId,value:newCandidate.firstname})
-    }
-    else{
+    if (!Object.keys(newUser.firstname).length){
         throw({message:`Firstname is missing`})
     }
 
-
-    if (newCandidate.lastname){
-        newUser.lastname.push({localeId,value:newCandidate.lastname})
-    }
-    else{
+    if (!Object.keys(newCandidate.lastname).length){
         throw({message:`Lastname is missing`})
     }
+
       
     // add hashed password to user object
     newUser.password = await bcrypt.hash(newCandidate.password,10)
 
-    const newUserCreated = await new UserModel(newUser).save()
-
-    if (!newCandidate.mainSpeciality.id){
-        const newSpecialityObject = {
-            locales: [{localeId,value:newCandidate.mainSpeciality.value}],
-            by: newUserCreated._id,
-            new:true,
-        }
-        const newSpeciality = await (new SpecialityModel(newSpecialityObject).save())
-        newUserCreated.mainSpeciality = [{localeId,value:[newSpeciality._id]}]
-    }
-    else if (newCandidate.mainSpeciality.id && mongoose.Types.ObjectId.isValid(newCandidate.mainSpeciality.id)){
-        newUserCreated.mainSpeciality = [{localeId,value:[newCandidate.mainSpeciality.id]}]
-    }
-    else {
+    if(!newCandidate.mainSpeciality instanceof Object || Object.keys(newCandidate.mainSpeciality).length < 1)  {
         if (!newCandidate.editor)
             throw({message:`Main mainSpeciality is missing`})
     }
 
-    await newUserCreated.save()
+    if (newCandidate.mainSpeciality.__isNew__){
+        let name = newCandidate.mainSpeciality.name
+        let exists = await SpecialityModel.findOne(name)
+        if (exists){
+            newUser.mainSpeciality = exists._id
+        }
+        else{
+            const newSpeciality = await SpecialityModel.create(newCandidate.mainSpeciality)
+            newUser.mainSpeciality = newSpeciality._id
+        }
+    }
+    else if (!newCandidate.mainSpeciality.__isNew__){
+        newUser.mainSpeciality = newCandidate.mainSpeciality.value
+    }
+    const newUserCreated = await UserModel.create(newUser)
 
     if (newUserCreated){
 
@@ -87,9 +78,6 @@ export const register = async (newCandidate,localeId) => {
         }
         if (await smtpTransport.sendMail(mailData)){
             return {username:newUserCreated.username,token:tokenForUser(newUserCreated)}
-        }
-        else {
-            UserModel.findByIdAndDelete(newUserCreated._id)
         }
     }
     

@@ -28,13 +28,14 @@ import {
   )
   
 } */
-export const getRegisterPageData = (localeId) => dispatch => {
+export const getRegisterPageData = () => dispatch => {
 
   dispatch({type:PROGRESS_SHOW})
 
-  _getRegisterPageData(localeId)
+  _getRegisterPageData()
   .then(response => {
     const {mainSpecialities} = response.data
+    console.log(mainSpecialities)
     dispatch({type:'SET_DATA_MAINSPECIALITIES',mainSpecialities})
   })
   .catch( err =>

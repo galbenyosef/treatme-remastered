@@ -1,9 +1,9 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { ExpansionPanel } from '../ExpansionPanel/ExpansionPanel';
-import { SpecialitiesTree } from './SpecialitiesTree';
-import { isObjectEmpty } from '../Utilities/isObjectEmpty'
-import { AutosuggestComponent } from '../Autosuggest/Autosuggest';
+/* import { SpecialitiesTree } from './SpecialitiesTree';
+ */import { isObjectEmpty } from '../Utilities/isObjectEmpty'
+import Select from 'react-select'
 import { setSpeciality } from '../../actions/userActions';
 import { fromStrings } from '../Utilities/languageUtils';
 
@@ -46,11 +46,11 @@ class Specialities extends React.Component {
           :
           <div style={{display:'flex',flexDirection:'column',justifyContent:'space-evenly',borderTop:'1px dashed grey',alignItems:'center'}}>
             <div style={{width:'50%'}}>
-              <AutosuggestComponent placeholder="specialities-placeholder" setFunction={setSpeciality}  data={specialitiesData}/>
+              <Select placeholder="specialities-placeholder" onChange={setSpeciality} options={specialitiesData}/>
             </div>
             <div style={{width:'90%'}}>
-              <SpecialitiesTree/>
-            </div>
+{/*               <SpecialitiesTree/>
+ */}            </div>
           </div>
         }
         </ExpansionPanel>

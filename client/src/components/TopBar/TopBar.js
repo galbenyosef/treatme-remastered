@@ -9,15 +9,15 @@ import { fromStrings } from '../Utilities/languageUtils';
 const topBar = (props) => {
 
   const {
-    titles,
     title,
+    locale,
     firstname,
     lastname,
     description,
     strings,
     updateUser
   } = props
-
+  console.log(props)
   return(
     <div style={{display:'flex',justifyContent:'space-between',backgroundColor:'darkslateblue',position:'sticky',top:0,zIndex:1}}>
       <div style={{width:'15%',display:'flex',justifyContent:'center',alignItems:'center',flexDirection:'column'}}>
@@ -26,12 +26,12 @@ const topBar = (props) => {
       <div style={{width:'65%',display:'flex',flexDirection:'column',justifyContent:'center',textAlign:'center'}}>
           <Textfit style={{color:'white'}} mode="single">
               {
-                `${title.value || ''} ${firstname || ''} ${lastname  || ''}`
+                `${title.label || ''} ${firstname[locale.symbol] || ''} ${lastname[locale.symbol]  || ''}`
               }
           </Textfit>
           <Textfit style={{color:'deepskyblue'}} mode="single">
               {
-                `${description || ''}`
+                `${description[locale.symbol] || ''}`
               }
           </Textfit>
       </div>
@@ -77,6 +77,7 @@ const mapStateToProps = state => {
 
   const {
     strings,
+    locale
   } = state.locale
 
   const {
@@ -88,6 +89,7 @@ const mapStateToProps = state => {
     title,
     firstname,
     lastname,
+    locale,
     description,
     strings
   }

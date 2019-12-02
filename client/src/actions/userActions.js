@@ -138,6 +138,12 @@ export const setMainSpecialityRegistration = mainSpeciality => dispatch => {
 
 }
 
+export const setDataMainSpecialities = mainSpecialities => dispatch => {
+
+  dispatch({type:'SET_DATA_MAINSPECIALITIES',mainSpecialities})
+
+}
+
 export const setGender = gender => dispatch => {
 
   dispatch({type:'SET_GENDER',gender})
