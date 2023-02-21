@@ -2,7 +2,6 @@
   "name": "treatme-server",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "./src/app.js",
   "scripts": {
     "start": "node ./src/bin/www",
